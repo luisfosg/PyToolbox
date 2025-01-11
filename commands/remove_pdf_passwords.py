@@ -1,29 +1,29 @@
 import os
 from PyPDF2 import PdfReader, PdfWriter
 
-def run():
+def ejecutar():
     """
-    Removes the password from all PDF files in the specified folder.
+    Elimina la contraseña de todos los archivos PDF en la carpeta especificada.
     """
-    folder_path = input("Enter the folder path: ").strip()
-    password = input("Enter the PDF password: ").strip()
+    ruta_carpeta = input("Ingresa la ruta de la carpeta: ").strip()
+    contraseña = input("Ingresa la contraseña del PDF: ").strip()
 
-    for filename in os.listdir(folder_path):
-        if filename.endswith(".pdf"):
-            file_path = os.path.join(folder_path, filename)
+    for nombre_archivo in os.listdir(ruta_carpeta):
+        if nombre_archivo.endswith(".pdf"):
+            ruta_archivo = os.path.join(ruta_carpeta, nombre_archivo)
             try:
-                reader = PdfReader(file_path)
+                lector = PdfReader(ruta_archivo)
 
-                if reader.is_encrypted:
-                    reader.decrypt(password)
+                if lector.is_encrypted:
+                    lector.decrypt(contraseña)
 
-                writer = PdfWriter()
-                for page in reader.pages:
-                    writer.add_page(page)
+                escritor = PdfWriter()
+                for pagina in lector.pages:
+                    escritor.add_page(pagina)
 
-                with open(file_path, "wb") as output_pdf:
-                    writer.write(output_pdf)
+                with open(ruta_archivo, "wb") as pdf_salida:
+                    escritor.write(pdf_salida)
 
-                print(f"Password removed from: {filename}")
+                print(f"Contraseña eliminada de: {nombre_archivo}")
             except Exception as e:
-                print(f"Failed to process {filename}: {e}")
+                print(f"No se pudo procesar {nombre_archivo}: {e}")

@@ -30,7 +30,6 @@ def load_commands(folder):
     return commands
 
 def show_menu(commands):
-    """Muestra el menú con las opciones disponibles."""
     print("\n=== MENÚ ===")
     for i, command in enumerate(commands.keys(), start=1):
         print(f"{i}. {command}")
