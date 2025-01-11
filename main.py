@@ -1,35 +1,66 @@
 import os
-from PyPDF2 import PdfReader, PdfWriter
+import importlib
+import sys
 
-def remove_pdf_passwords(folder_path, password):
-    """
-    Removes the password from all PDF files in the specified folder.
+COMMANDS_FOLDER = "commands"
 
-    Parameters:
-    folder_path (str): Path to the folder containing the PDF files.
-    password (str): Password to unlock the PDF files.
-    """
-    for filename in os.listdir(folder_path):
-        if filename.endswith(".pdf"):
-            file_path = os.path.join(folder_path, filename)
+def load_commands(folder):
+    """Carga los módulos de Python desde la carpeta especificada."""
+    commands = {}
+    if not os.path.exists(folder):
+        print(f"La carpeta '{folder}' no existe. Creándola...")
+        os.makedirs(folder)
+        return commands
+
+    sys.path.insert(0, folder)
+    
+    for filename in os.listdir(folder):
+        if filename.endswith(".py") and not filename.startswith("_"):
+            module_name = filename[:-3]
             try:
-                reader = PdfReader(file_path)
-
-                if reader.is_encrypted:
-                    reader.decrypt(password)
-
-                writer = PdfWriter()
-                for page in reader.pages:
-                    writer.add_page(page)
-
-                with open(file_path, "wb") as output_pdf:
-                    writer.write(output_pdf)
-
-                print(f"Password removed from: {filename}")
+                module = importlib.import_module(module_name)
+                if hasattr(module, "run"):
+                    commands[module_name] = module.run
+                else:
+                    print(f"El módulo '{module_name}' no tiene una función 'run'.")
             except Exception as e:
-                print(f"Failed to process {filename}: {e}")
+                print(f"Error al cargar el módulo '{module_name}': {e}")
+    
+    sys.path.pop(0)
+    return commands
+
+def show_menu(commands):
+    """Muestra el menú con las opciones disponibles."""
+    print("\n=== MENÚ ===")
+    for i, command in enumerate(commands.keys(), start=1):
+        print(f"{i}. {command}")
+    print("0. Salir")
+
+def main():
+    commands = load_commands(COMMANDS_FOLDER)
+
+    if not commands:
+        print("No hay comandos disponibles. Añade archivos .py en la carpeta 'commands' con una función 'run'.")
+        return
+
+    while True:
+        show_menu(commands)
+        choice = input("Selecciona una opción: ")
+
+        if choice == "0":
+            print("Saliendo del programa...")
+            break
+
+        try:
+            choice = int(choice)
+            if 1 <= choice <= len(commands):
+                command_name = list(commands.keys())[choice - 1]
+                print(f"Ejecutando '{command_name}'...", end="\n\n")
+                commands[command_name]()
+            else:
+                print("Opción inválida. Inténtalo de nuevo.")
+        except ValueError:
+            print("Por favor, ingresa un número válido.")
 
 if __name__ == "__main__":
-    folder = input("Enter the folder path: ").strip()
-    pdf_password = input("Enter the PDF password: ").strip()
-    remove_pdf_passwords(folder, pdf_password)
+    main()
