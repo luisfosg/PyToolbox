@@ -1,10 +1,7 @@
 import os
-from PyPDF2 import PdfReader, PdfWriter
+from pypdf import PdfReader, PdfWriter
 
 def run():
-    """
-    Elimina la contraseña de todos los archivos PDF en la carpeta especificada.
-    """
     ruta_carpeta = input("Ingresa la ruta de la carpeta: ").strip()
     contraseña = input("Ingresa la contraseña del PDF: ").strip()
 
