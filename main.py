@@ -4,8 +4,21 @@ import sys
 
 COMMANDS_FOLDER = "commands"
 
+
+def get_terminal_width():
+    try:
+        return os.get_terminal_size().columns
+    except:
+        return 80
+
+
+def centered(text, width=None):
+    if width is None:
+        width = get_terminal_width()
+    return text.center(width)
+
+
 def load_commands(folder):
-    """Carga los módulos de Python desde la carpeta especificada."""
     commands = {}
     if not os.path.exists(folder):
         print(f"La carpeta '{folder}' no existe. Creándola...")
@@ -13,7 +26,7 @@ def load_commands(folder):
         return commands
 
     sys.path.insert(0, folder)
-    
+
     for filename in os.listdir(folder):
         if filename.endswith(".py") and not filename.startswith("_"):
             module_name = filename[:-3]
@@ -23,43 +36,65 @@ def load_commands(folder):
                     commands[module_name] = module.run
                 else:
                     print(f"El módulo '{module_name}' no tiene una función 'run'.")
+            except ImportError as e:
+                print(f"Error al cargar el módulo '{module_name}': {e.name}")
             except Exception as e:
                 print(f"Error al cargar el módulo '{module_name}': {e}")
-    
+
     sys.path.pop(0)
     return commands
 
+
 def show_menu(commands):
-    print("\n=== MENÚ ===")
-    for i, command in enumerate(commands.keys(), start=1):
-        print(f"{i}. {command}")
-    print("0. Salir")
+    width = min(get_terminal_width(), 60)
+    print()
+    print("┌" + "─" * (width - 2) + "┐")
+    print("│" + centered("🛠️  PYTHON TOOLBOX", width - 2) + "│")
+    print("├" + "─" * (width - 2) + "┤")
+
+    if not commands:
+        print("│" + centered("No hay comandos disponibles", width - 2) + "│")
+    else:
+        for i, command in enumerate(commands.keys(), start=1):
+            cmd_display = f"  {i}. {command.replace('_', ' ').title()}"
+            print("│" + cmd_display.ljust(width - 2) + "│")
+
+    print("├" + "─" * (width - 2) + "┤")
+    print("│" + centered("0. Salir", width - 2) + "│")
+    print("└" + "─" * (width - 2) + "┘")
+
 
 def main():
     commands = load_commands(COMMANDS_FOLDER)
 
     if not commands:
-        print("No hay comandos disponibles. Añade archivos .py en la carpeta 'commands' con una función 'run'.")
+        print(
+            "No hay comandos disponibles. Añade archivos .py en la carpeta 'commands' con una función 'run'."
+        )
         return
 
     while True:
         show_menu(commands)
-        choice = input("Selecciona una opción: ")
+        choice = input("  → ").strip()
 
         if choice == "0":
-            print("Saliendo del programa...")
+            print("\n👋 ¡Hasta luego!")
             break
 
         try:
             choice = int(choice)
             if 1 <= choice <= len(commands):
                 command_name = list(commands.keys())[choice - 1]
-                print(f"Ejecutando '{command_name}'...", end="\n\n")
+                print(f"\n▶ Ejecutando: {command_name.replace('_', ' ').title()}")
+                print("─" * 40)
                 commands[command_name]()
+                print("─" * 40)
+                print("✅ Completado\n")
             else:
-                print("Opción inválida. Inténtalo de nuevo.")
+                print("  ⚠️ Opción inválida. Inténtalo de nuevo.")
         except ValueError:
-            print("Por favor, ingresa un número válido.")
+            print("  ⚠️ Por favor, ingresa un número válido.")
+
 
 if __name__ == "__main__":
     main()
