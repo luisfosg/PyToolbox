@@ -1,4 +1,4 @@
-pypdf==6.7.1
+pypdf==6.9.2
 rarfile==4.2
 pyautogui==0.9.54
 pynput==1.7.7
